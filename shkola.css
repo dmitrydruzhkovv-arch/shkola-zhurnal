@@ -1,0 +1,104 @@
+/* ════════════════════════════════════════════════════════════════
+   shkola.css — общее для двух страниц школьного журнала (ТЗ 18, Кодер, 10.10.2026):
+   index.html (вход, «Мои журналы», «Школа») и zhurnal.html (сам журнал).
+   Основа — style.css сайта уроков D: те же темы Λ / D, те же переменные шапки.
+
+   1) Цвета предметов. Номер цвета предмета хранит сервер (prd.c), палитра — здесь.
+      Переменные те же, что у .k-algebra: --g заливка, --s акцент, --on текст на заливке,
+      --t тон, --d тёмный, --glow свечение. Поменять цвет — поменять строку .k-cN (день и ночь).
+   2) Шапка, кнопки, окна для index.html. В zhurnal.html эти же правила лежат в его
+      собственном <style> (он — копия журнала D): правишь вид кнопки — правь в обоих местах.
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── 1. цвета предметов ── */
+.k-c0{ --g:linear-gradient(135deg,hsl(24 88% 62%) 0%,hsl(24 88% 52%) 55%,hsl(24 88% 44%) 100%); --s:hsl(24 88% 48%); --on:#fff; --t:hsl(24 93% 95%); --d:hsl(24 88% 30%); --glow:hsla(24,88%,52%,.42); }
+.k-c1{ --g:linear-gradient(135deg,hsl(245 75% 70%) 0%,hsl(245 75% 60%) 55%,hsl(245 75% 52%) 100%); --s:hsl(245 75% 56%); --on:#fff; --t:hsl(245 80% 95%); --d:hsl(245 75% 38%); --glow:hsla(245,75%,60%,.42); }
+.k-c2{ --g:linear-gradient(135deg,hsl(152 62% 48%) 0%,hsl(152 62% 38%) 55%,hsl(152 62% 30%) 100%); --s:hsl(152 62% 34%); --on:#fff; --t:hsl(152 67% 95%); --d:hsl(152 62% 18%); --glow:hsla(152,62%,38%,.42); }
+.k-c3{ --g:linear-gradient(135deg,hsl(345 78% 64%) 0%,hsl(345 78% 54%) 55%,hsl(345 78% 46%) 100%); --s:hsl(345 78% 50%); --on:#fff; --t:hsl(345 83% 95%); --d:hsl(345 78% 32%); --glow:hsla(345,78%,54%,.42); }
+.k-c4{ --g:linear-gradient(135deg,hsl(200 85% 55%) 0%,hsl(200 85% 45%) 55%,hsl(200 85% 37%) 100%); --s:hsl(200 85% 41%); --on:#fff; --t:hsl(200 90% 95%); --d:hsl(200 85% 23%); --glow:hsla(200,85%,45%,.42); }
+.k-c5{ --g:linear-gradient(135deg,hsl(270 65% 68%) 0%,hsl(270 65% 58%) 55%,hsl(270 65% 50%) 100%); --s:hsl(270 65% 54%); --on:#fff; --t:hsl(270 70% 95%); --d:hsl(270 65% 36%); --glow:hsla(270,65%,58%,.42); }
+.k-c6{ --g:linear-gradient(135deg,hsl(40 92% 54%) 0%,hsl(40 92% 44%) 55%,hsl(40 92% 36%) 100%); --s:hsl(40 92% 40%); --on:#fff; --t:hsl(40 95% 95%); --d:hsl(40 92% 22%); --glow:hsla(40,92%,44%,.42); }
+.k-c7{ --g:linear-gradient(135deg,hsl(175 70% 46%) 0%,hsl(175 70% 36%) 55%,hsl(175 70% 28%) 100%); --s:hsl(175 70% 32%); --on:#fff; --t:hsl(175 75% 95%); --d:hsl(175 70% 18%); --glow:hsla(175,70%,36%,.42); }
+.k-c8{ --g:linear-gradient(135deg,hsl(5 78% 65%) 0%,hsl(5 78% 55%) 55%,hsl(5 78% 47%) 100%); --s:hsl(5 78% 51%); --on:#fff; --t:hsl(5 83% 95%); --d:hsl(5 78% 33%); --glow:hsla(5,78%,55%,.42); }
+.k-c9{ --g:linear-gradient(135deg,hsl(95 55% 48%) 0%,hsl(95 55% 38%) 55%,hsl(95 55% 30%) 100%); --s:hsl(95 55% 34%); --on:#fff; --t:hsl(95 60% 95%); --d:hsl(95 55% 18%); --glow:hsla(95,55%,38%,.42); }
+.k-c10{ --g:linear-gradient(135deg,hsl(320 68% 62%) 0%,hsl(320 68% 52%) 55%,hsl(320 68% 44%) 100%); --s:hsl(320 68% 48%); --on:#fff; --t:hsl(320 73% 95%); --d:hsl(320 68% 30%); --glow:hsla(320,68%,52%,.42); }
+.k-c11{ --g:linear-gradient(135deg,hsl(215 30% 56%) 0%,hsl(215 30% 46%) 55%,hsl(215 30% 38%) 100%); --s:hsl(215 30% 42%); --on:#fff; --t:hsl(215 35% 95%); --d:hsl(215 30% 24%); --glow:hsla(215,30%,46%,.42); }
+[data-theme="night"] .k-c0{ --g:linear-gradient(135deg,hsl(24 98% 74%) 0%,hsl(24 88% 58%) 45%,hsl(24 88% 30%) 100%); --s:hsl(24 98% 78%); --on:#fff; --t:hsla(24,88%,52%,.16); --d:hsl(24 98% 88%); --glow:hsla(24,98%,60%,.7); }
+[data-theme="night"] .k-c1{ --g:linear-gradient(135deg,hsl(245 85% 78%) 0%,hsl(245 75% 62%) 45%,hsl(245 75% 38%) 100%); --s:hsl(245 85% 78%); --on:#fff; --t:hsla(245,75%,60%,.16); --d:hsl(245 85% 88%); --glow:hsla(245,85%,64%,.7); }
+[data-theme="night"] .k-c2{ --g:linear-gradient(135deg,hsl(152 72% 60%) 0%,hsl(152 62% 44%) 45%,hsl(152 62% 20%) 100%); --s:hsl(152 72% 78%); --on:#fff; --t:hsla(152,62%,38%,.16); --d:hsl(152 72% 88%); --glow:hsla(152,72%,46%,.7); }
+[data-theme="night"] .k-c3{ --g:linear-gradient(135deg,hsl(345 88% 76%) 0%,hsl(345 78% 60%) 45%,hsl(345 78% 32%) 100%); --s:hsl(345 88% 78%); --on:#fff; --t:hsla(345,78%,54%,.16); --d:hsl(345 88% 88%); --glow:hsla(345,88%,62%,.7); }
+[data-theme="night"] .k-c4{ --g:linear-gradient(135deg,hsl(200 95% 67%) 0%,hsl(200 85% 51%) 45%,hsl(200 85% 23%) 100%); --s:hsl(200 95% 78%); --on:#fff; --t:hsla(200,85%,45%,.16); --d:hsl(200 95% 88%); --glow:hsla(200,95%,53%,.7); }
+[data-theme="night"] .k-c5{ --g:linear-gradient(135deg,hsl(270 75% 78%) 0%,hsl(270 65% 62%) 45%,hsl(270 65% 36%) 100%); --s:hsl(270 75% 78%); --on:#fff; --t:hsla(270,65%,58%,.16); --d:hsl(270 75% 88%); --glow:hsla(270,75%,64%,.7); }
+[data-theme="night"] .k-c6{ --g:linear-gradient(135deg,hsl(40 98% 66%) 0%,hsl(40 92% 50%) 45%,hsl(40 92% 22%) 100%); --s:hsl(40 98% 78%); --on:#fff; --t:hsla(40,92%,44%,.16); --d:hsl(40 98% 88%); --glow:hsla(40,98%,52%,.7); }
+[data-theme="night"] .k-c7{ --g:linear-gradient(135deg,hsl(175 80% 58%) 0%,hsl(175 70% 42%) 45%,hsl(175 70% 20%) 100%); --s:hsl(175 80% 78%); --on:#fff; --t:hsla(175,70%,36%,.16); --d:hsl(175 80% 88%); --glow:hsla(175,80%,44%,.7); }
+[data-theme="night"] .k-c8{ --g:linear-gradient(135deg,hsl(5 88% 77%) 0%,hsl(5 78% 61%) 45%,hsl(5 78% 33%) 100%); --s:hsl(5 88% 78%); --on:#fff; --t:hsla(5,78%,55%,.16); --d:hsl(5 88% 88%); --glow:hsla(5,88%,63%,.7); }
+[data-theme="night"] .k-c9{ --g:linear-gradient(135deg,hsl(95 65% 60%) 0%,hsl(95 55% 44%) 45%,hsl(95 55% 20%) 100%); --s:hsl(95 65% 78%); --on:#fff; --t:hsla(95,55%,38%,.16); --d:hsl(95 65% 88%); --glow:hsla(95,65%,46%,.7); }
+[data-theme="night"] .k-c10{ --g:linear-gradient(135deg,hsl(320 78% 74%) 0%,hsl(320 68% 58%) 45%,hsl(320 68% 30%) 100%); --s:hsl(320 78% 78%); --on:#fff; --t:hsla(320,68%,52%,.16); --d:hsl(320 78% 88%); --glow:hsla(320,78%,60%,.7); }
+[data-theme="night"] .k-c11{ --g:linear-gradient(135deg,hsl(215 40% 68%) 0%,hsl(215 30% 52%) 45%,hsl(215 30% 24%) 100%); --s:hsl(215 40% 78%); --on:#fff; --t:hsla(215,30%,46%,.16); --d:hsl(215 40% 88%); --glow:hsla(215,40%,54%,.7); }
+/* «Все предметы» и страница входа — чёрная, как «Математика» у журнала D */
+.k-mat{ --g:linear-gradient(135deg,#3a3642 0%,#16131a 60%,#000 100%); --s:#16131a; --on:#fff; --t:#ecebef; --d:#16131a; --glow:rgba(0,0,0,.45); }
+[data-theme="night"] .k-mat{ --g:linear-gradient(135deg,#2c2436 0%,#0a070d 70%,#000 100%); --s:#f3ecff; --on:#fff; --t:rgba(255,255,255,.08); --d:#f3ecff; --glow:rgba(255,255,255,.35); }
+
+/* ── 2. страница входа и «Школа» ── */
+.shk [hidden]{ display:none !important; }
+.shk{ --z-line2:#d9d3e6; --z-head:#f2eff9; --z-hover:#f6f3fb; --z-shadow:0 18px 50px -18px rgba(40,24,70,.35); background:var(--store); min-height:100vh; }
+[data-theme="night"] .shk{ --z-line2:#3a2447; --z-head:#231430; --z-hover:#231430; --z-shadow:0 0 0 1px rgba(255,92,200,.18), 0 24px 60px -20px rgba(217,70,239,.45); }
+.shk input, .shk textarea, .shk select{ font:inherit; color:inherit; }
+.shk .zh-hero{ position:relative; overflow:hidden; isolation:isolate; color:var(--h-txt); padding:22px 0 22px; border-bottom:1px solid var(--h-line);
+  background:radial-gradient(900px 400px at 85% -10%, rgba(168,85,247,.20), transparent 60%), radial-gradient(700px 360px at 0% 110%, rgba(79,70,229,.14), transparent 60%), var(--h-bg); }
+[data-theme="night"] .shk .zh-hero{ border-bottom-color:rgba(255,92,200,.28);
+  background:radial-gradient(800px 380px at 90% -20%, rgba(217,70,239,.35), transparent 60%), radial-gradient(700px 400px at -5% 120%, rgba(190,18,60,.28), transparent 60%), var(--h-bg); }
+.shk .zh-hero .shell{ position:relative; z-index:1; }
+.shk .zh-hero .gif-wall{ display:flex; align-items:center; }
+.shk .zh-hero .gw-plane{ position:relative; flex:0 0 128%; left:-12%; top:auto; width:auto; height:auto; gap:12px; }
+.shk .zh-hero .gif-wall::after{ background:
+  linear-gradient(90deg, var(--h-bg) 0%, color-mix(in srgb, var(--h-bg) 82%, transparent) 30%, color-mix(in srgb, var(--h-bg) 30%, transparent) 62%, color-mix(in srgb, var(--h-bg) 18%, transparent) 100%),
+  linear-gradient(180deg, color-mix(in srgb, var(--h-bg) 55%, transparent) 0%, transparent 34%, transparent 70%, color-mix(in srgb, var(--h-bg) 70%, transparent) 100%); }
+@media (min-width:701px){ .shk .zh-hero{ min-height:150px; } }
+@media (max-width:700px){ .shk .zh-hero{ padding-top:60px; } .shk .zh-hero .gw-plane{ flex-basis:160%; left:-30%; gap:10px; } .shk .shell{ padding:0 16px; } }
+.shk .zh-title{ display:flex; align-items:baseline; gap:6px 16px; flex-wrap:wrap; margin-top:10px; }
+.shk .zh-title .kicker{ margin-top:0; }
+.shk .zh-main{ padding-top:18px; }
+.shk .zh-foot{ padding:22px 0 40px; font-size:13px; color:var(--muted); }
+.shk .zh-copy{ margin-top:10px; font-size:12px; opacity:.7; }
+.shk .link{ text-decoration:underline; text-underline-offset:3px; color:var(--sub); font-size:13px; }
+.shk .btn{ display:inline-block; padding:8px 14px; border-radius:11px; font-weight:700; text-align:center; text-decoration:none; background:var(--card); color:var(--ink); box-shadow:inset 0 0 0 1px var(--z-line2); }
+.shk .btn:hover{ background:var(--z-hover); }
+.shk .btn.pri{ background:var(--g); color:var(--on); box-shadow:0 10px 22px -14px var(--glow); }
+[data-theme="night"] .shk .btn.pri{ background:#f3ecff; color:#16131a; box-shadow:0 0 18px -6px rgba(243,236,255,.6); }
+.shk .btn.danger{ color:#dc2626; }
+.shk .btn.sm{ padding:5px 10px; font-size:13px; }
+.shk .btn[disabled]{ opacity:.5; pointer-events:none; }
+.shk .note{ font-size:13px; color:var(--muted); margin-top:4px; }
+.shk .empty{ padding:40px 20px; text-align:center; color:var(--sub); }
+/* вкладки в шапке: «Мои журналы» · «Школа» */
+.shk .jsw{ display:flex; gap:6px; flex-wrap:wrap; margin-top:14px; }
+.shk .jr{ padding:7px 14px; border-radius:999px; font-weight:700; font-size:14px; color:var(--h-soft); box-shadow:inset 0 0 0 1px var(--h-line); }
+.shk .jr[aria-pressed="true"]{ background:var(--h-txt); color:var(--h-bg); box-shadow:none; }
+/* карточка входа */
+.shk .gate{ max-width:420px; margin:28px auto; background:var(--card); border-radius:20px; padding:26px 22px; text-align:center;
+  box-shadow:inset 0 0 0 1px var(--line), 0 18px 50px -30px rgba(40,24,70,.4); }
+[data-theme="night"] .shk .gate{ box-shadow:inset 0 0 0 1px rgba(217,70,239,.25), 0 0 60px -24px rgba(217,70,239,.6); }
+.shk .gate h2{ font-size:22px; font-weight:800; margin-bottom:6px; }
+.shk .gate p{ color:var(--sub); font-size:15px; }
+.shk .gate form{ display:grid; gap:10px; margin-top:18px; text-align:left; }
+.shk .gate label{ font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); }
+.shk .gate input{ width:100%; padding:12px 14px; border-radius:12px; border:1px solid var(--z-line2); background:var(--store); font-size:17px; margin-top:4px; }
+.shk .gate .btn{ padding:12px 14px; font-size:16px; margin-top:4px; }
+.shk .gate .err{ color:#dc2626; font-size:14px; min-height:1.2em; text-align:center; }
+.shk .gate .alt{ margin-top:18px; padding-top:14px; border-top:1px solid var(--z-line2); font-size:14px; }
+.shk .gate .who{ font-size:18px; font-weight:800; color:var(--ink); margin-top:10px; }
+/* окна */
+.shk .dlg-bg{ position:fixed; inset:0; background:rgba(16,10,24,.45); z-index:45; }
+[data-theme="night"] .shk .dlg-bg{ background:rgba(5,2,8,.7); }
+.shk .dlg{ position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); width:min(520px, calc(100vw - 16px)); max-height:calc(100dvh - 24px); overflow:auto;
+  background:var(--card); color:var(--ink); border-radius:20px; box-shadow:var(--z-shadow); padding:20px; z-index:46; }
+.shk .dlg h3{ font-size:20px; font-weight:800; margin-bottom:4px; }
+.shk .dlg .meta{ color:var(--muted); font-size:13px; margin-bottom:14px; }
+.shk .dlg .lbl{ font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-top:12px; }
+.shk .dlg input:not([type="checkbox"]):not([type="radio"]), .shk .dlg select, .shk .dlg textarea{ width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--z-line2); background:var(--store); margin-top:4px; }
+.shk .dlg .row{ display:flex; gap:8px; justify-content:flex-end; margin-top:18px; flex-wrap:wrap; }
+.shk .dlg .row .sp{ flex:1; }
+.shk .dlg .err{ color:#dc2626; font-size:14px; margin-top:10px; min-height:1em; }
+.shk .dlg .chk{ display:flex; gap:8px; align-items:center; margin-top:8px; font-size:15px; cursor:pointer; }
+.shk .dlg .chks{ display:grid; grid-template-columns:repeat(auto-fill, minmax(170px, 1fr)); gap:2px 12px; margin-top:4px; }

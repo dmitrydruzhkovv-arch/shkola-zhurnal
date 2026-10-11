@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Школьный журнал</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#16131a">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<script>
+  try { if (localStorage.getItem('tema') === 'night') document.documentElement.dataset.theme = 'night'; } catch (_) {}
+</script>
+<link rel="stylesheet" href="fonts/gf.css">
+<link rel="stylesheet" href="style.css?v=d21de379">
+<link rel="stylesheet" href="shkola.css?v=f48131ae">
+<!--
+  Школьный журнал (ТЗ 18, 10.10.2026): вход педагога, «Мои журналы» и «Школа» руководителя.
+  Эта страница — пустая оболочка: имён и оценок в ней нет (152-ФЗ). Данные приходят с нашего сервера
+  в России (vk_bot/shkola.py) после входа. Сам журнал — zhurnal.html.
+-->
+<style>
+/* общий вид (шапка, кнопки, окна, цвета предметов) — в shkola.css; здесь — только списки этой страницы */
+.cards{ display:grid; grid-template-columns:repeat(auto-fill, minmax(290px, 1fr)); gap:14px; }
+.card, .kcard{ background:var(--card); border-radius:18px; padding:16px; box-shadow:inset 0 0 0 1px var(--line), 0 14px 34px -26px rgba(40,24,70,.5); }
+[data-theme="night"] .card, [data-theme="night"] .kcard{ box-shadow:inset 0 0 0 1px rgba(217,70,239,.22); }
+.card.arch, .kcard.arch{ opacity:.72; }
+.card-h{ display:block; text-decoration:none; }
+.card-h b{ display:block; font-size:22px; font-weight:800; letter-spacing:-.3px; }
+.card-h span{ font-size:13px; color:var(--muted); }
+.chips{ display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; }
+.chip{ padding:6px 11px; border-radius:10px; font-size:13.5px; font-weight:700; text-decoration:none; color:var(--on); background:var(--g); }
+.chip.ro{ background:none; color:var(--d); box-shadow:inset 0 0 0 1.5px var(--s); }
+.chip:hover{ transform:translateY(-1px); }
+/* «Школа» */
+.secs{ display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-bottom:14px; }
+.sec{ padding:8px 14px; border-radius:11px; font-weight:700; background:var(--card); box-shadow:inset 0 0 0 1px var(--z-line2); }
+.sec[aria-pressed="true"]{ background:var(--ink); color:var(--card); box-shadow:none; }
+.secs .sp{ flex:1; }
+.klist{ display:grid; grid-template-columns:repeat(auto-fill, minmax(360px, 1fr)); gap:14px; align-items:start; }
+.kcard-h{ display:flex; align-items:baseline; gap:6px 10px; flex-wrap:wrap; }
+.kcard-h b{ font-size:20px; font-weight:800; }
+.kcard-h span{ font-size:13px; color:var(--muted); }
+.kcard-h .sp{ flex:1; }
+.kline{ font-size:14px; color:var(--sub); margin-top:8px; }
+.kline b{ color:var(--ink); }
+.ktab{ width:100%; border-collapse:collapse; margin-top:12px; }
+.ktab td{ padding:5px 0; border-top:1px solid var(--z-line2); font-size:14.5px; vertical-align:middle; }
+.ktab td:first-child{ font-weight:700; padding-right:8px; }
+.ktab select, .kadd select{ width:100%; padding:7px 8px; border-radius:9px; border:1px solid var(--z-line2); background:var(--store); font-size:14px; }
+.ktab td.kx{ width:30px; text-align:right; }
+.ktab td.kx button{ color:#dc2626; padding:4px 8px; border-radius:8px; }
+.kadd{ margin-top:8px; }
+.dot{ display:inline-block; width:12px; height:12px; border-radius:4px; background:var(--g); margin-right:8px; vertical-align:-1px; }
+.plist{ background:var(--card); border-radius:18px; box-shadow:inset 0 0 0 1px var(--line); overflow:hidden; }
+[data-theme="night"] .plist{ box-shadow:inset 0 0 0 1px rgba(217,70,239,.22); }
+.prow{ display:flex; align-items:center; gap:6px 12px; flex-wrap:wrap; padding:12px 16px; border-top:1px solid var(--z-line2); }
+.prow:first-child{ border-top:0; }
+.prow.off{ opacity:.6; }
+.prow .nm{ flex:1 1 220px; min-width:0; }
+.prow .nm b{ font-weight:800; }
+.prow .nm span{ display:block; font-size:13px; color:var(--muted); }
+.prow .stt{ flex:0 1 220px; font-size:13px; color:var(--sub); }
+.prow .stt.ok::before, .prow .stt.inv::before, .prow .stt.new::before, .prow .stt.off::before{ content:''; display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; background:#16a34a; }
+.prow .stt.inv::before{ background:#f59e0b; } .prow .stt.new::before{ background:#dc2626; } .prow .stt.off::before{ background:#9ca3af; }
+.prow .acts{ display:flex; gap:6px; flex-wrap:wrap; flex:0 0 348px; justify-content:flex-end; }
+.sw{ display:flex; flex-wrap:wrap; gap:8px; margin-top:6px; }
+.sw button{ width:34px; height:34px; border-radius:10px; background:var(--g); }
+.sw button[aria-pressed="true"]{ box-shadow:0 0 0 3px var(--card), 0 0 0 5px var(--s); }
+.lnkbox{ font-family:'JetBrains Mono',ui-monospace,Menlo,monospace; font-size:13px; word-break:break-all; padding:10px 12px; border-radius:10px; background:var(--store); border:1px solid var(--z-line2); margin-top:8px; user-select:all; }
+.hint{ max-width:720px; font-size:14px; color:var(--sub); margin:0 0 14px; }
+/* запуск школы: пять шагов по порядку; полоска исчезает, когда все пройдены */
+.steps{ display:flex; gap:8px; flex-wrap:wrap; align-items:stretch; margin:0 0 16px; padding:14px; border-radius:18px; background:var(--card); box-shadow:inset 0 0 0 1px var(--z-line2); }
+.steps h4{ flex:1 1 100%; font-size:15px; font-weight:800; margin-bottom:2px; }
+.steps h4 span{ font-weight:500; color:var(--muted); }
+.step{ flex:1 1 150px; display:flex; flex-direction:column; gap:2px; padding:10px 12px; border-radius:12px; background:var(--store); text-align:left; font-size:13px; color:var(--muted); }
+.step b{ font-size:15px; color:var(--ink); }
+.step.done{ opacity:.6; } .step.done b::before{ content:'✓ '; color:#16a34a; }
+.step.now{ background:var(--ink); color:var(--card); } .step.now b{ color:var(--card); }
+.step.now span{ opacity:.8; }
+.dlg textarea{ min-height:150px; resize:vertical; }
+@media (max-width:760px){ .prow .acts{ flex:1 1 100%; justify-content:flex-start; } }
+@media (max-width:560px){ .klist{ grid-template-columns:1fr; } .prow .stt{ flex-basis:100%; } }
+</style>
+</head>
+<body class="shk k-mat">
+<header class="zh-hero">
+  <!-- живая стена — та же обложка, что у журнала; data-svoi: только свои плитки, наружу страница не ходит -->
+  <div class="gif-wall" id="gifWall" data-cols="11" data-rows="6" data-cols-uzko="5" data-rows-uzko="8" data-svoi="1" aria-hidden="true"></div>
+  <div class="shell">
+    <div class="zh-title">
+      <h1>Журнал</h1>
+      <span class="kicker" id="kicker"></span>
+    </div>
+    <nav class="jsw" id="nav" hidden></nav>
+  </div>
+</header>
+<div class="shell zh-main">
+  <main id="main"><div class="empty">Открываю…</div></main>
+  <footer class="zh-foot">
+    <a class="link" href="pravila.html">Правила и конфиденциальность</a><span id="footLinks"></span>
+    <div class="zh-copy">© 2026 Дмитрий Дружков · Журнал — авторская разработка: копировать и использовать — только с письменного разрешения автора</div>
+  </footer>
+</div>
+
+<div class="dock" id="dock">
+  <span class="clock mono" id="clock"></span>
+  <button class="tema tema-day" data-tema="day" title="Дневная тема" aria-label="Дневная тема">Λ</button>
+  <button class="tema tema-night" data-tema="night" title="Ночная тема" aria-label="Ночная тема">D</button>
+</div>
+<div id="dlg"></div>
+<script src="fon.js?v=2cc9b635"></script>
+
+<script>
+(function () {
+  'use strict';
+
+  var LS = { key: 'shk:tok', me: 'shk:me', api: 'shk:api', j: 'shk:j' };
+  var PWD_MIN = 8, COLORS = 12;
+  function lsGet(k, d) { try { var v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* без памяти — только на этот раз */ } }
+  function lsDel(k) { try { localStorage.removeItem(k); } catch (e) { /* нечего чистить */ } }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function $(id) { return document.getElementById(id); }
+
+  /* ── адрес сервера: прямой RF и запасной через шлюз (с VPN) — как у журнала ── */
+  var APIS = (function () {
+    if (location.hostname === '127.0.0.1' || location.hostname === 'localhost') return [location.origin + '/shkola'];   // стенд на Маке
+    var list = ['https://194-87-110-53.nip.io/shkola', 'https://hw.157-228-128-116.nip.io/shkola'];
+    var saved = lsGet(LS.api, '');
+    return list.indexOf(saved) > 0 ? [saved].concat(list.filter(function (a) { return a !== saved; })) : list;
+  })();
+  var API = APIS[0];
+  function nextApi() { if (APIS.length > 1) API = APIS[(APIS.indexOf(API) + 1) % APIS.length]; }
+
+  var TOK = lsGet(LS.key, ''), ME = lsGet(LS.me, null);
+  // запрос к серверу; сеть подвела — один раз через запасной адрес. Изменения (ONCE) вслепую не повторяем: первый
+  // запрос мог дойти, а потерялся только ответ — второй завёл бы человека дважды или упёрся в уже занятое приглашение.
+  // Что с ними стало, страница узнаёт у сервера сама: см. op(), приглашение и смену пароля
+  var ONCE = { '/adm/op': 1, '/invite/accept': 1, '/pwd': 1, '/zhurnal/code': 1 };
+  function post(path, body, tries) {
+    var once = ONCE[path] === 1;
+    var ctrl = window.AbortController ? new AbortController() : null;
+    var guard = setTimeout(function () { if (ctrl) ctrl.abort(); }, once ? 25000 : 10000);
+    var h = { 'Content-Type': 'application/json' };
+    if (TOK) h.Authorization = 'Bearer ' + TOK;
+    return fetch(API + path, { method: 'POST', headers: h, body: JSON.stringify(body || {}), signal: ctrl ? ctrl.signal : undefined })
+      .then(function (r) {
+        clearTimeout(guard);
+        lsSet(LS.api, API.indexOf('https://hw.') === 0 ? API : '');
+        return r.json().catch(function () { return {}; }).then(function (j) { return { status: r.status, data: j }; });
+      }, function (e) {
+        clearTimeout(guard); nextApi();
+        if (!tries && !once && APIS.length > 1) return post(path, body, 1);
+        throw e;
+      });
+  }
+  var NET = 'Нет связи с сервером. Проверьте интернет; если включён VPN — попробуйте без него.';
+  var CUT = 'Связь прервалась. Нажмите ещё раз.';
+  var WEAK = 'Слишком простой пароль: его подберут первым. Не одни цифры, не фамилия и не расхожее слово.';
+
+  /* ── с устройства убираем вход и копии журналов: на школьном компьютере сядет другой педагог.
+     Несохранённые правки (shk:out:<кто>:<журнал>) остаются — вход мог просто устареть, человек войдёт и они уйдут
+     на сервер. Стираем их, только когда он сам нажал «Выйти» (dropOut). ── */
+  function myOut() {
+    var pre = ME && ME.id ? 'shk:out:' + ME.id + ':' : null, keys = [], n = 0;
+    try {
+      for (var i = 0; pre && i < localStorage.length; i++) {
+        var k = localStorage.key(i);
+        if (k.indexOf(pre) === 0) { keys.push(k); n += (lsGet(k, []) || []).length; }
+      }
+    } catch (e) { /* память закрыта */ }
+    return { keys: keys, n: n };
+  }
+  function forget(dropOut) {
+    var kill = dropOut ? myOut().keys : [];
+    try {
+      for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k.indexOf('shk:cache:') === 0) kill.push(k); }
+    } catch (e) { /* память закрыта — чистить нечего */ }
+    kill.forEach(lsDel);
+    lsDel(LS.key); lsDel(LS.me); lsDel(LS.j);
+    TOK = ''; ME = null; ST = null; JOURNALS = [];
+  }
+
+  var JOURNALS = [], SCHOOL = '', ST = null, view = 'home', sec = 'kls', secPicked = false;
+  function clearHash() { try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* не страшно */ } }
+
+  /* ── вход ── */
+  function showLogin(msg, back) {
+    $('nav').hidden = true; $('kicker').textContent = ''; $('footLinks').innerHTML = '';
+    $('main').innerHTML = '<div class="gate"><h2>Вход для педагогов</h2><p>Логин и пароль вы задали по приглашению руководителя.</p>' +
+      '<form id="fLogin"><div><label for="inLogin">Логин</label><input id="inLogin" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="40"></div>' +
+      '<div><label for="inPwd">Пароль</label><input id="inPwd" type="password" autocomplete="current-password" maxlength="200"></div>' +
+      '<div class="err" id="loginErr">' + esc(msg || '') + '</div>' +
+      '<button class="btn pri" type="submit">Войти</button></form>' +
+      '<p class="note">Забыли пароль — попросите руководителя выдать новое приглашение.</p>' +
+      '<div class="alt">Ученик или родитель? <a class="link" href="zhurnal.html" style="font-size:inherit">Открыть журнал по коду класса</a></div></div>';
+    $('fLogin').onsubmit = function (ev) {
+      ev.preventDefault();
+      var lg = $('inLogin').value.trim().toLowerCase(), pw = $('inPwd').value, err = $('loginErr');
+      if (!lg || !pw) { err.textContent = 'Введите логин и пароль.'; return; }
+      err.textContent = 'Проверяю…';
+      post('/login', { login: lg, pwd: pw }).then(function (r) {
+        if (r.status === 200 && r.data.ok) { entered(r.data, back); return; }
+        err.textContent = r.status === 429 ? 'Слишком много неверных попыток. Подождите 10 минут.' : r.status === 403 ? 'Логин или пароль не подошли.' : 'Сервер не ответил как надо. Попробуйте ещё раз.';
+        $('inPwd').value = '';
+      }, function () { err.textContent = NET; });
+    };
+    setTimeout(function () { var f = $('inLogin'); if (f) f.focus(); }, 50);
+  }
+  // вошёл: запомнить ключ входа на устройстве и открыть «Мои журналы» (или журнал, с которого отправили входить заново)
+  function entered(d, back) {
+    var j = back ? lsGet(LS.j, '') : '';
+    if (ME && d.me && ME.id !== d.me.id) { forget(); j = ''; }   // на этом устройстве был другой человек — его копии журналов убрать
+    TOK = d.token; ME = d.me; lsSet(LS.key, TOK); lsSet(LS.me, ME);
+    clearHash();
+    if (j) { location.href = 'zhurnal.html?j=' + encodeURIComponent(j); return; }
+    loadHome();
+  }
+
+  /* ── приглашение: человек сам задаёт пароль ── */
+  function showInvite(inv) {
+    $('nav').hidden = true; $('footLinks').innerHTML = '';
+    $('main').innerHTML = '<div class="empty">Проверяю приглашение…</div>';
+    var dead = function (t) {
+      $('main').innerHTML = '<div class="gate"><h2>Приглашение не работает</h2><p>' + t + '</p><p style="margin-top:14px"><a class="btn" href="./">На страницу входа</a></p></div>';
+    };
+    post('/invite/open', { inv: inv }).then(function (r) {
+      if (r.status === 429) { dead('Слишком много попыток. Подождите 10 минут и откройте ссылку ещё раз.'); return; }
+      if (r.status !== 200 || !r.data.ok) { dead('Оно одноразовое и действует 7 дней. Если пароль уже задан — войдите с ним. Иначе попросите у руководителя новое приглашение.'); return; }
+      var d = r.data;
+      $('kicker').textContent = d.school || '';
+      $('main').innerHTML = '<div class="gate"><h2>Добро пожаловать</h2><div class="who">' + esc(d.fam + ' ' + d.name) + '</div>' +
+        '<p>' + esc(d.school) + ' · ' + (d.role === 'adm' ? 'руководитель школы' : 'педагог') + '</p>' +
+        '<form id="fInv"><div><label>Ваш логин</label><input id="inLogin" autocomplete="username" readonly value="' + esc(d.login) + '"></div>' +
+        '<div><label for="inPwd">Придумайте пароль</label><input id="inPwd" type="password" autocomplete="new-password" maxlength="200" placeholder="не короче ' + PWD_MIN + ' знаков"></div>' +
+        '<div><label for="inPwd2">Ещё раз</label><input id="inPwd2" type="password" autocomplete="new-password" maxlength="200"></div>' +
+        '<div class="err" id="invErr"></div><button class="btn pri" type="submit">Задать пароль и войти</button></form>' +
+        '<p class="note">Запишите логин. Пароль знаете только вы: в школе его не видят и подсказать не смогут — только выдать новое приглашение.</p></div>';
+      var busy = false, cut = false;   // cut — прошлый запрос оборвался: он мог дойти до сервера и занять приглашение
+      $('fInv').onsubmit = function (ev) {
+        ev.preventDefault();
+        var a = $('inPwd').value, b = $('inPwd2').value, err = $('invErr');
+        if (busy) return;
+        if (a.length < PWD_MIN) { err.textContent = 'Пароль — не короче ' + PWD_MIN + ' знаков.'; return; }
+        if (a !== b) { err.textContent = 'Пароли не совпали.'; return; }
+        busy = true; err.textContent = 'Сохраняю…';
+        var free = function (t) { busy = false; if (t) err.textContent = t; };
+        var used = function () { dead('Им уже воспользовались или срок вышел. Попросите у руководителя новое.'); };
+        // приглашение занято — возможно, нашим же оборвавшимся запросом: тогда пароль уже задан и с ним можно войти
+        var tryLogin = function (otherwise) {
+          return post('/login', { login: d.login, pwd: a }).then(function (r4) {
+            if (r4.status === 200 && r4.data.ok) entered(r4.data); else otherwise();
+          });
+        };
+        post('/invite/accept', { inv: inv, pwd: a }).then(function (r2) {
+          if (r2.status === 200 && r2.data.ok) { entered(r2.data); return; }
+          if (r2.status === 403) return cut ? tryLogin(used) : used();
+          free(r2.data.error === 'weak' ? WEAK : 'Не получилось. Попробуйте ещё раз.');
+        }, function () {
+          // ответа нет. Приглашение ещё открывается — пароль, скорее всего, не задан: можно нажать снова;
+          // уже нет — задан этим самым запросом: входим с ним
+          cut = true;
+          return post('/invite/open', { inv: inv }).then(function (r3) {
+            if (r3.status === 200 && r3.data.ok) { free(CUT); return; }
+            return tryLogin(function () { free(NET); });
+          });
+        }).catch(function () { free(NET); });
+      };
+      setTimeout(function () { var f = $('inPwd'); if (f) f.focus(); }, 50);
+    }, function () { dead(NET); });
+  }
+
+  /* ── вошедший: шапка и подвал ── */
+  function renderNav() {
+    $('kicker').textContent = SCHOOL;
+    var nav = $('nav'), adm = ME && ME.role === 'adm';
+    nav.hidden = !adm;
+    nav.innerHTML = adm ? '<button class="jr" data-view="home" aria-pressed="' + (view === 'home') + '">Мои журналы</button>' +
+      '<button class="jr" data-view="shkola" aria-pressed="' + (view === 'shkola') + '">Школа</button>' : '';
+    $('footLinks').innerHTML = ' · <b>' + esc((ME.fam + ' ' + (ME.name || '')).trim()) + '</b> · ' +
+      '<button class="link" data-act="pwd">Сменить пароль</button> · <button class="link" data-act="logout">Выйти</button>';
+  }
+  function gone(r) {   // вход устарел или доступ закрыт
+    if (r && r.status === 401) { forget(); showLogin('Вход устарел — войдите заново.'); return true; }
+    return false;
+  }
+  function loadHome() {
+    post('/me').then(function (r) {
+      if (gone(r)) return;
+      if (r.status !== 200 || !r.data.ok) throw 0;
+      ME = r.data.me; lsSet(LS.me, ME); SCHOOL = r.data.school || ''; JOURNALS = r.data.journals || [];
+      if (ME.role === 'adm' && !JOURNALS.length) view = 'shkola';   // пустая школа: руководителю сразу в «Школу» — заводить
+      if (view === 'shkola' && ME.role === 'adm') loadSchool(); else { view = 'home'; renderNav(); renderHome(); }
+    }).catch(function () {
+      $('main').innerHTML = '<div class="gate"><h2>Нет связи</h2><p>' + NET + '</p><p style="margin-top:14px"><button class="btn pri" data-act="reload">Ещё раз</button></p></div>';
+    });
+  }
+
+  /* ── «Мои журналы»: класс — карточка, предметы — кнопки в цвете предмета ── */
+  function renderHome() {
+    var h;
+    if (!JOURNALS.length) {
+      h = '<div class="empty">' + (ME.role === 'adm' ? 'Классов пока нет. Откройте «Школу»: заведите предметы, людей и первый класс.'
+        : 'Вам пока не назначили ни одного класса. Это делает руководитель школы.') + '</div>';
+    } else {
+      h = '<div class="cards">' + JOURNALS.map(function (x) {
+        var url = 'zhurnal.html?j=' + encodeURIComponent(x.j);
+        var chips = x.subj.map(function (s) {
+          var can = x.edit.indexOf(s.id) >= 0;
+          return '<a class="chip k-c' + ((+s.c || 0) % COLORS) + (can ? '' : ' ro') + '" href="' + url + '#' + esc(s.id) + '" title="' + esc(s.name) + (can ? '' : ' — только просмотр') + '">' + esc(s.short || s.name) + '</a>';
+        }).join('');
+        return '<article class="card' + (x.arch ? ' arch' : '') + '"><a class="card-h" href="' + url + '"><b>' + esc(x.title) + '</b>' +
+          '<span>' + esc(x.year) + (x.arch ? ' · архив' : '') + (x.kr ? ' · вы классный руководитель' : '') + '</span></a>' +
+          '<div class="chips">' + (chips || '<span class="note">Предметов пока нет</span>') + '</div></article>';
+      }).join('') + '</div>';
+    }
+    $('main').innerHTML = h;
+  }
+
+  /* ── «Школа»: классы, люди, предметы ── */
+  function loadSchool() {
+    post('/adm/state').then(function (r) {
+      if (gone(r)) return;
+      if (r.status !== 200 || !r.data.ok) throw 0;
+      ST = r.data.state; SCHOOL = ST.school; view = 'shkola';
+      if (!secPicked) { var todo = steps().filter(function (x) { return !x.done; })[0]; if (todo) sec = todo.sec; }   // первый заход — на первый несделанный шаг
+      try { history.replaceState(null, '', '#shkola'); } catch (e) { /* не страшно */ }   // обновил страницу — остался в «Школе»
+      renderNav(); renderSchool();
+    }).catch(function () { $('main').innerHTML = '<div class="empty">' + NET + '</div>'; });
+  }
+  // одно изменение → сервер отвечает всем состоянием; отказ — его причина словами
+  function op(body, then) {
+    return post('/adm/op', body).then(function (r) {
+      if (gone(r)) return;
+      if (r.data.state) { ST = r.data.state; SCHOOL = ST.school; }
+      if (r.status === 200 && r.data.ok) { closeDlg(); renderNav(); renderSchool(); if (then) then(r.data); return; }
+      var why = r.data.why || 'Не получилось. Попробуйте ещё раз.', e = $('dlgErr');
+      renderSchool();
+      if (e) e.textContent = why; else alert(why);
+    }, function () {
+      // ответа нет, а изменение могло дойти: вслепую не повторяем — берём с сервера, что там на самом деле
+      var say = function (t) { var e = $('dlgErr'); if (e) e.textContent = t; else alert(t); };
+      post('/adm/state').then(function (r) {
+        if (gone(r)) return;
+        if (r.status !== 200 || !r.data.ok) { say(NET); return; }
+        ST = r.data.state; SCHOOL = ST.school; renderNav(); renderSchool();
+        say('Связь прервалась. Список обновлён — посмотрите, сохранилось ли изменение, прежде чем повторять.');
+      }, function () { say(NET); });
+    });
+  }
+  function person(id) { return (ST.people || []).filter(function (p) { return p.id === id; })[0] || null; }
+  function subject(id) { return (ST.subjects || []).filter(function (s) { return s.id === id; })[0] || null; }
+  function klass(id) { return (ST.classes || []).filter(function (k) { return k.id === id; })[0] || null; }
+  function fio(p) { return p ? (p.fam + ' ' + (p.name || '')).trim() : ''; }
+  function shortFio(p) { return p ? p.fam + (p.name ? ' ' + p.name.charAt(0) + '.' : '') : ''; }
+  function seenStr(ms) {
+    if (!ms) return '';
+    var d = new Date(ms), days = Math.floor((Date.now() - ms) / 864e5);
+    return days < 1 ? 'сегодня' : days < 2 ? 'вчера' : ('0' + d.getDate()).slice(-2) + '.' + ('0' + (d.getMonth() + 1)).slice(-2);
+  }
+
+  function renderSchool() {
+    if (!ST) return;
+    var n = { kls: ST.classes.length, ppl: ST.people.length, prd: ST.subjects.filter(function (s) { return !s.off; }).length };
+    var h = '<div class="secs">' + [['kls', 'Классы'], ['ppl', 'Люди'], ['prd', 'Предметы']].map(function (x) {
+      return '<button class="sec" data-sec="' + x[0] + '" aria-pressed="' + (sec === x[0]) + '">' + x[1] + ' · ' + n[x[0]] + '</button>';
+    }).join('') + '<span class="sp"></span>' +
+      (sec === 'kls' ? '<button class="btn pri" data-act="kadd">＋ Класс</button>' : sec === 'ppl' ? '<button class="btn pri" data-act="padd">＋ Человек</button>' : '<button class="btn pri" data-act="sadd">＋ Предмет</button>') + '</div>';
+    h = stepsHtml() + h + (sec === 'kls' ? classesHtml() : sec === 'ppl' ? peopleHtml() : subjectsHtml());
+    $('main').innerHTML = h;
+  }
+
+  // запуск школы по порядку: без предметов нечего класть в класс, без людей некого назначать
+  function steps() {
+    var K = ST.classes;
+    return [
+      { t: 'Предметы', d: 'какие предметы есть в школе', sec: 'prd', done: ST.subjects.length > 0 },
+      { t: 'Люди', d: 'педагоги — каждому приглашение', sec: 'ppl', done: ST.people.length > 1 },
+      { t: 'Класс', d: 'название, год, его предметы', sec: 'kls', done: K.length > 0 },
+      { t: 'Кто что ведёт', d: 'педагог у каждого предмета', sec: 'kls', done: K.some(function (k) { return k.subj.some(function (x) { return x.tch.length; }); }) },
+      { t: 'Ученики', d: 'список — кнопка в карточке класса', sec: 'kls', done: K.some(function (k) { return k.n > 0; }) }
+    ];
+  }
+  function stepsHtml() {
+    var S5 = steps(), left = S5.filter(function (x) { return !x.done; });
+    if (!left.length) return '';
+    return '<div class="steps"><h4>Запуск школы <span>· осталось шагов: ' + left.length + '</span></h4>' + S5.map(function (x, i) {
+      return '<button class="step' + (x.done ? ' done' : x === left[0] ? ' now' : '') + '" data-sec="' + x.sec + '"><b>' + (i + 1) + '. ' + x.t + '</b><span>' + x.d + '</span></button>';
+    }).join('') + '</div>';
+  }
+
+  function classesHtml() {
+    if (!ST.subjects.length) return '<p class="hint">Начните с предметов и людей: вкладки «Предметы» и «Люди». Потом заведите класс и укажите, кто какой предмет ведёт.</p>' + (ST.classes.length ? '' : '<div class="empty">Классов пока нет.</div>');
+    if (!ST.classes.length) return '<div class="empty">Классов пока нет — нажмите «＋ Класс».</div>';
+    var staff = ST.people.filter(function (p) { return p.state !== 'off'; });
+    return '<div class="klist">' + ST.classes.map(function (k) {
+      var kr = person(k.kr), have = {};
+      var rows = k.subj.map(function (x) {
+        var s = subject(x.id) || { name: '?', c: 0 }, cur = x.tch[0] || 0;
+        have[x.id] = 1;
+        return '<tr><td><i class="dot k-c' + ((+s.c || 0) % COLORS) + '"></i>' + esc(s.name) + '</td>' +
+          '<td><select data-load="' + k.id + '" data-prd="' + esc(x.id) + '" aria-label="Кто ведёт: ' + esc(s.name) + '"' + (k.arch ? ' disabled' : '') + '>' +
+          '<option value="0">— педагог не назначен —</option>' + staff.concat(cur && !staff.some(function (p) { return p.id === cur; }) ? [person(cur)] : []).filter(Boolean).map(function (p) {
+            return '<option value="' + p.id + '"' + (p.id === cur ? ' selected' : '') + '>' + esc(fio(p)) + (p.state === 'off' ? ' (доступ закрыт)' : '') + '</option>';
+          }).join('') + '</select>' + (x.tch.length > 1 ? '<div class="note">и ещё ' + (x.tch.length - 1) + '</div>' : '') + '</td>' +
+          '<td class="kx">' + (k.arch ? '' : '<button data-act="ksubjdel" data-id="' + k.id + '" data-prd="' + esc(x.id) + '" title="Убрать предмет из класса" aria-label="Убрать предмет из класса">✕</button>') + '</td></tr>';
+      }).join('');
+      var free = ST.subjects.filter(function (s) { return !s.off && !have[s.id]; });
+      return '<article class="kcard' + (k.arch ? ' arch' : '') + '"><div class="kcard-h"><b>' + esc(k.title) + '</b>' +
+        '<span class="sp"></span><a class="btn sm pri" href="zhurnal.html?j=' + encodeURIComponent(k.j) + '">Журнал</a><button class="btn sm" data-act="kedit" data-id="' + k.id + '">Изменить</button></div>' +
+        '<div class="kline">' + esc(k.year) + (k.arch ? ' · архив' : '') + ' · учеников: <b>' + k.n + '</b>' +
+        (k.arch ? '' : ' · <a class="link" href="zhurnal.html?j=' + encodeURIComponent(k.j) + '&open=students">' + (k.n ? 'список учеников' : 'добавить учеников') + '</a>') + '</div>' +
+        '<div class="kline">Классный руководитель: <b>' + (kr ? esc(fio(kr)) : 'не назначен') + '</b></div>' +
+        (k.arch ? '' : '<div class="kline">Код класса: <b class="mono">' + esc(k.code) + '</b> · <button class="link" data-act="klink" data-id="' + k.id + '">ссылка для учеников</button> · <button class="link" data-act="kcode" data-id="' + k.id + '">новый код</button></div>') +
+        (rows ? '<table class="ktab"><tbody>' + rows + '</tbody></table>' : '<div class="note" style="margin-top:12px">Предметов в классе пока нет.</div>') +
+        (!k.arch && free.length ? '<div class="kadd"><select data-ksubj="' + k.id + '" aria-label="Добавить предмет в класс"><option value="">＋ предмет в этот класс…</option>' + free.map(function (s) {
+          return '<option value="' + esc(s.id) + '">' + esc(s.name) + '</option>';
+        }).join('') + '</select></div>' : '') + '</article>';
+    }).join('') + '</div>';
+  }
+
+  var STT = { ok: 'вход есть', inv: 'приглашение ждёт', 'new': 'приглашение истекло — выдайте новое', off: 'доступ закрыт' };
+  function peopleHtml() {
+    return '<p class="hint">Человек входит по приглашению: ссылка одноразовая и живёт 7 дней, пароль он придумывает сам. Забыл пароль — выдайте новое приглашение.</p>' +
+      '<div class="plist">' + ST.people.map(function (p) {
+        return '<div class="prow' + (p.state === 'off' ? ' off' : '') + '"><div class="nm"><b>' + esc(fio(p)) + '</b><span>' + (p.role === 'adm' ? 'руководитель школы' : 'педагог') + ' · логин <span class="mono" style="display:inline">' + esc(p.login) + '</span></span></div>' +
+          '<div class="stt ' + p.state + '">' + STT[p.state] + (p.state === 'ok' && p.seen ? ' · в журнале: ' + seenStr(p.seen) : '') + (p.state === 'ok' && p.inv ? ' · выдано новое приглашение' : '') + '</div>' +
+          '<div class="acts">' + (p.state === 'off' ? '<button class="btn sm" data-act="pon" data-id="' + p.id + '">Открыть доступ</button>'
+            : '<button class="btn sm" data-act="pinv" data-id="' + p.id + '">' + (p.state === 'ok' ? 'Новый пароль' : 'Приглашение') + '</button><button class="btn sm" data-act="pedit" data-id="' + p.id + '">Изменить</button>' +
+              (p.id === ME.id ? '' : '<button class="btn sm danger" data-act="poff" data-id="' + p.id + '">Закрыть доступ</button>')) + '</div></div>';
+      }).join('') + '</div>';
+  }
+
+  function subjectsHtml() {
+    if (!ST.subjects.length) return '<div class="empty">Предметов пока нет — нажмите «＋ Предмет».</div>';
+    return '<p class="hint">Предметы общие для школы. В каждый класс добавьте нужные и назначьте педагога — на вкладке «Классы».</p>' +
+      '<div class="plist">' + ST.subjects.map(function (s) {
+        return '<div class="prow' + (s.off ? ' off' : '') + '"><div class="nm"><b><i class="dot k-c' + ((+s.c || 0) % COLORS) + '"></i>' + esc(s.name) + '</b>' +
+          '<span>на вкладке: ' + esc(s.short) + (s.off ? ' · скрыт: в новые классы не добавляется' : '') + '</span></div>' +
+          '<div class="acts"><button class="btn sm" data-act="sedit" data-id="' + esc(s.id) + '">Изменить</button>' +
+          '<button class="btn sm" data-act="soff" data-id="' + esc(s.id) + '">' + (s.off ? 'Вернуть' : 'Скрыть') + '</button></div></div>';
+      }).join('') + '</div>';
+  }
+
+  /* ── окна ── */
+  function closeDlg() { $('dlg').innerHTML = ''; }
+  function dlg(title, meta, body, btn, act, extra) {
+    $('dlg').innerHTML = '<div class="dlg-bg" data-act="close"></div><div class="dlg" role="dialog" aria-modal="true"><h3>' + title + '</h3>' +
+      (meta ? '<div class="meta">' + meta + '</div>' : '') + '<form id="dlgForm">' + body + '<div class="err" id="dlgErr"></div>' +
+      '<div class="row">' + (extra || '') + '<span class="sp"></span><button class="btn" type="button" data-act="close">Отмена</button>' +
+      (btn ? '<button class="btn pri" type="submit">' + btn + '</button>' : '') + '</div></form></div>';
+    $('dlgForm').onsubmit = function (ev) { ev.preventDefault(); if (act) act(); };
+    setTimeout(function () { var f = $('dlg').querySelector('input:not([readonly]), textarea, select'); if (f) f.focus(); }, 40);
+  }
+  function val(id) { var e = $(id); return e ? e.value.trim() : ''; }
+
+  function dlgPerson(p) {
+    dlg(p ? 'Изменить' : 'Новый человек', p ? '' : 'После сохранения появится ссылка-приглашение — отправьте её человеку лично.',
+      '<div class="lbl">Фамилия</div><input id="fFam" maxlength="40" value="' + esc(p ? p.fam : '') + '">' +
+      '<div class="lbl">Имя (можно с отчеством)</div><input id="fName" maxlength="40" value="' + esc(p ? p.name : '') + '">' +
+      '<div class="lbl">Кто</div><select id="fRole"><option value="tch"' + (p && p.role === 'adm' ? '' : ' selected') + '>Педагог — ведёт свои предметы</option>' +
+      '<option value="adm"' + (p && p.role === 'adm' ? ' selected' : '') + '>Руководитель школы — заводит людей и классы, видит все журналы</option></select>' +
+      '<div class="lbl">Логин</div><input id="fLogin" class="mono" maxlength="32" autocapitalize="none" spellcheck="false" value="' + esc(p ? p.login : '') + '" placeholder="' + (p ? '' : 'соберётся сам из фамилии') + '">',
+      'Сохранить', function () {
+        if (!val('fFam')) { $('dlgErr').textContent = 'Нужна фамилия.'; return; }
+        var b = { op: p ? 'person.edit' : 'person.add', fam: val('fFam'), name: val('fName'), role: $('fRole').value, login: val('fLogin').toLowerCase() };
+        if (p) b.id = p.id;
+        op(b, function (d) { if (!p && d.inv) dlgInvite(person(d.id), d.inv); });
+      });
+  }
+  function dlgInvite(p, inv) {
+    var url = location.origin + location.pathname + '#inv=' + inv;
+    dlg((p.state === 'ok' ? 'Новый пароль · ' : 'Приглашение · ') + esc(fio(p)), 'Отправьте ссылку человеку лично. Она одноразовая и действует 7 дней: по ней он сам придумает пароль.' +
+      (p.state === 'ok' ? ' Прежний пароль работает, пока он не задаст новый.' : ''),
+      '<div class="lbl">Логин</div><div class="lnkbox">' + esc(p.login) + '</div>' +
+      '<div class="lbl">Ссылка</div><div class="lnkbox" id="invUrl">' + esc(url) + '</div>' +
+      '<div class="note">Ссылка показывается один раз. Потеряли — выдайте новое приглашение, старое перестанет работать.</div>',
+      '', null, '<button class="btn pri" type="button" data-act="copy" data-from="invUrl">Скопировать ссылку</button>');
+  }
+  var USUAL = ['Русский язык', 'Литература', 'Математика', 'Английский язык', 'История', 'Обществознание', 'География', 'Биология', 'Физика', 'Химия', 'Информатика', 'Физкультура'];
+  // короткое имя для вкладки: длинное название — первым словом («Английский язык» → «Английский»)
+  function shortOf(name) { return name.length <= 12 ? name : name.split(' ')[0].slice(0, 12); }
+  function dlgSubject(s) {
+    if (!s) {   // новые — сразу списком: в школе их десять-пятнадцать
+      dlg('Новые предметы', 'По одному в строке. Те, что уже есть, пропустятся.',
+        '<div class="lbl">Названия</div><textarea id="fNames" maxlength="1500" placeholder="Русский язык\nМатематика\nИстория"></textarea>',
+        'Добавить', function () {
+          var names = [], seen = {};
+          $('fNames').value.split(/\r?\n/).forEach(function (x) { x = x.replace(/\s+/g, ' ').trim().slice(0, 60); if (x && !seen[x.toLowerCase()]) { seen[x.toLowerCase()] = 1; names.push(x); } });
+          if (!names.length) { $('dlgErr').textContent = 'Впишите хотя бы одно название.'; return; }
+          $('dlgErr').textContent = 'Добавляю…';
+          // по одному и по порядку: порядок вкладок в журнале — порядок в этом списке
+          names.slice(0, 30).reduce(function (chain, nm) {
+            return chain.then(function () { return post('/adm/op', { op: 'subject.add', name: nm, short: shortOf(nm) }); });
+          }, Promise.resolve()).then(function () { closeDlg(); loadSchool(); }, function () { $('dlgErr').textContent = NET; });
+        }, '<button class="btn" type="button" data-act="susual">Обычный набор</button>');
+      return;
+    }
+    var c = (+s.c || 0) % COLORS;
+    dlg('Предмет', '',
+      '<div class="lbl">Название</div><input id="fName" maxlength="60" value="' + esc(s.name) + '">' +
+      '<div class="lbl">Коротко — на вкладке журнала</div><input id="fShort" maxlength="14" value="' + esc(s.short) + '">' +
+      '<div class="lbl">Цвет</div><div class="sw" id="fColor">' + Array.apply(null, Array(COLORS)).map(function (_, i) {
+        return '<button type="button" class="k-c' + i + '" data-color="' + i + '" aria-pressed="' + (i === c) + '" aria-label="Цвет ' + (i + 1) + '"></button>';
+      }).join('') + '</div>',
+      'Сохранить', function () {
+        if (!val('fName')) { $('dlgErr').textContent = 'Нужно название.'; return; }
+        var on = $('fColor').querySelector('[aria-pressed="true"]');
+        op({ op: 'subject.edit', id: s.id, name: val('fName'), short: val('fShort'), c: on ? +on.dataset.color : c });
+      });
+  }
+  function dlgClass(k) {
+    var staff = ST.people.filter(function (p) { return p.state !== 'off' || (k && p.id === k.kr); });
+    var body = '<div class="lbl">Название</div><input id="fTitle" maxlength="40" value="' + esc(k ? k.title : '') + '" placeholder="Например: 5 класс">' +
+      '<div class="lbl">Учебный год</div><input id="fYear" class="mono" maxlength="9" value="' + esc(k ? k.year : ST.year) + '">';
+    if (k) {
+      body += '<div class="lbl">Классный руководитель</div><select id="fKr"><option value="0">— не назначен —</option>' + staff.map(function (p) {
+        return '<option value="' + p.id + '"' + (p.id === k.kr ? ' selected' : '') + '>' + esc(fio(p)) + (p.state === 'off' ? ' — доступ закрыт' : '') + '</option>';
+      }).join('') + '</select><div class="note">Видит все предметы своего класса, ведёт список учеников, раздаёт код и личные ссылки. Оценки ставит только по своим предметам.</div>';
+    } else {
+      body += '<div class="lbl">Предметы</div><div class="chks">' + ST.subjects.filter(function (s) { return !s.off; }).map(function (s) {
+        return '<label class="chk"><input type="checkbox" name="fSubj" value="' + esc(s.id) + '" checked> ' + esc(s.name) + '</label>';
+      }).join('') + '</div><div class="note">Лишние снимите. Педагогов назначите в карточке класса.</div>';
+    }
+    dlg(k ? 'Класс' : 'Новый класс', '', body, 'Сохранить', function () {
+      if (!val('fTitle')) { $('dlgErr').textContent = 'Нужно название класса.'; return; }
+      var b = { op: k ? 'class.edit' : 'class.add', title: val('fTitle'), year: val('fYear') };
+      if (k) { b.id = k.id; b.kr = +$('fKr').value || 0; }
+      else b.subj = Array.prototype.map.call(document.querySelectorAll('input[name=fSubj]:checked'), function (x) { return x.value; });
+      op(b);
+    }, k ? '<button class="btn" type="button" data-act="karch" data-id="' + k.id + '">' + (k.arch ? 'Вернуть из архива' : 'В архив') + '</button>' +
+      (k.n ? '' : '<button class="btn danger" type="button" data-act="kdel" data-id="' + k.id + '">Удалить</button>') : '');
+  }
+  function dlgPwd() {
+    dlg('Сменить пароль', 'После смены на всех устройствах нужно будет войти заново — на этом вы останетесь.',
+      '<div class="lbl">Нынешний пароль</div><input id="fOld" type="password" autocomplete="current-password" maxlength="200">' +
+      '<div class="lbl">Новый пароль</div><input id="fNew" type="password" autocomplete="new-password" maxlength="200" placeholder="не короче ' + PWD_MIN + ' знаков">' +
+      '<div class="lbl">Ещё раз</div><input id="fNew2" type="password" autocomplete="new-password" maxlength="200">',
+      'Сменить', function () {
+        var a = $('fNew').value, e = $('dlgErr');
+        if (a.length < PWD_MIN) { e.textContent = 'Пароль — не короче ' + PWD_MIN + ' знаков.'; return; }
+        if (a !== $('fNew2').value) { e.textContent = 'Новые пароли не совпали.'; return; }
+        post('/pwd', { old: $('fOld').value, 'new': a }).then(function (r) {
+          if (gone(r)) return;
+          if (r.status === 200 && r.data.ok) { TOK = r.data.token; lsSet(LS.key, TOK); closeDlg(); alert('Пароль сменён.'); return; }
+          e.textContent = r.status === 403 ? 'Нынешний пароль не подошёл.' : r.status === 429 ? 'Слишком много попыток. Подождите 10 минут.' : r.data.error === 'weak' ? WEAK : 'Не получилось. Попробуйте ещё раз.';
+        }, function () {
+          post('/me').then(function (r) {
+            if (r.status === 200 && r.data.ok) { e.textContent = CUT; return; }
+            if (r.status !== 401 || !ME) { e.textContent = NET; return; }
+            return post('/login', { login: ME.login, pwd: a }).then(function (r2) {
+              if (r2.status === 200 && r2.data.ok) { TOK = r2.data.token; lsSet(LS.key, TOK); closeDlg(); alert('Пароль сменён.'); }
+              else gone(r);
+            });
+          }).catch(function () { e.textContent = NET; });
+        });
+      });
+  }
+  function copyText(text, btn) {
+    var done = function () { if (btn) btn.textContent = 'Скопировано ✓'; };
+    (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject()).then(done, function () {
+      var t = document.createElement('textarea'); t.value = text; document.body.appendChild(t); t.select();
+      try { document.execCommand('copy'); done(); } catch (e) { prompt('Скопируйте ссылку:', text); }
+      t.remove();
+    });
+  }
+
+  /* ── нажатия ── */
+  document.addEventListener('click', function (ev) {
+    var t = ev.target;
+    var tm = t.closest('[data-tema]');
+    if (tm) { setTheme(tm.dataset.tema); return; }
+    var vb = t.closest('[data-view]');
+    if (vb) { view = vb.dataset.view; if (view === 'shkola') loadSchool(); else { clearHash(); loadHome(); } renderNav(); return; }
+    var sb = t.closest('[data-sec]');
+    if (sb) { sec = sb.dataset.sec; secPicked = true; renderSchool(); return; }
+    var cb = t.closest('[data-color]');
+    if (cb) { Array.prototype.forEach.call(cb.parentNode.children, function (x) { x.setAttribute('aria-pressed', String(x === cb)); }); return; }
+    var a = t.closest('[data-act]');
+    if (!a) return;
+    var act = a.dataset.act, id = +a.dataset.id || a.dataset.id;
+    if (act === 'close') closeDlg();
+    else if (act === 'reload') location.reload();
+    else if (act === 'logout') logout(false);
+    else if (act === 'pwd') dlgPwd();
+    else if (act === 'copy') copyText($(a.dataset.from).textContent, a);
+    else if (act === 'padd') dlgPerson(null);
+    else if (act === 'pedit') dlgPerson(person(id));
+    else if (act === 'pinv') {
+      var p = person(id);
+      if (p) {
+        op({ op: 'person.invite', id: id }, function (d) { dlgInvite(person(id), d.inv); });
+      }
+    }
+    else if (act === 'poff') {
+      var p2 = person(id);
+      if (p2 && confirm('Закрыть доступ: ' + fio(p2) + '? Вход погаснет на всех его устройствах сразу. Оценки, которые он поставил, останутся.')) op({ op: 'person.off', id: id, off: true });
+    }
+    else if (act === 'pon') op({ op: 'person.off', id: id, off: false });
+    else if (act === 'sadd') dlgSubject(null);
+    else if (act === 'susual') { var ta = $('fNames'), have = {}; ST.subjects.forEach(function (x) { have[x.name.toLowerCase()] = 1; });
+      ta.value = USUAL.filter(function (x) { return !have[x.toLowerCase()]; }).join('\n'); ta.focus(); ta.setSelectionRange(0, 0); ta.scrollTop = 0; }   // список — с начала, а не с хвоста
+    else if (act === 'sedit') dlgSubject(subject(a.dataset.id));
+    else if (act === 'soff') { var s = subject(a.dataset.id); if (s) op({ op: 'subject.edit', id: s.id, off: !s.off }); }
+    else if (act === 'kadd') dlgClass(null);
+    else if (act === 'kedit') dlgClass(klass(id));
+    else if (act === 'karch') { var k = klass(id); if (k && (k.arch || confirm('Убрать «' + k.title + '» в архив? Журнал останется только для просмотра, по коду класса он открываться перестанет.'))) op({ op: 'class.edit', id: id, arch: !k.arch }); }
+    else if (act === 'kdel') { if (confirm('Удалить класс совсем? Это для класса, заведённого по ошибке.')) op({ op: 'class.del', id: id }); }
+    else if (act === 'ksubjdel') {
+      var s2 = subject(a.dataset.prd);
+      if (confirm('Убрать предмет «' + (s2 ? s2.name : '') + '» из класса?')) op({ op: 'class.subj', id: id, prd: a.dataset.prd, on: false });
+    }
+    else if (act === 'klink') {
+      var k2 = klass(id);
+      if (k2) dlg('Ссылка класса · ' + esc(k2.title), 'Для учеников и родителей: журнал откроется сразу, без ввода кода. Только смотреть — менять по ней ничего нельзя.',
+        '<div class="lbl">Код класса</div><div class="lnkbox">' + esc(k2.code) + '</div>' +
+        '<div class="lbl">Ссылка</div><div class="lnkbox" id="klUrl">' + esc(location.origin + location.pathname.replace(/[^\/]*$/, '') + 'zhurnal.html#k=' + k2.code) + '</div>' +
+        '<div class="note">Попала не к тем — нажмите «новый код» в карточке класса: старые код и ссылка перестанут работать.</div>',
+        '', null, '<button class="btn pri" type="button" data-act="copy" data-from="klUrl">Скопировать ссылку</button>');
+    }
+    else if (act === 'kcode') {
+      var k3 = klass(id);
+      if (k3 && confirm('Выдать новый код класса «' + k3.title + '»? Старый код и старая ссылка перестанут работать.')) {
+        post('/zhurnal/code', { j: k3.j, 'new': true }).then(function (r) { if (gone(r)) return; if (r.status !== 200) alert('Не получилось.'); loadSchool(); }, function () { alert('Связь прервалась. Посмотрите в карточке класса, какой код действует сейчас.'); loadSchool(); });
+      }
+    }
+  });
+  document.addEventListener('change', function (ev) {
+    var t = ev.target;
+    if (t.dataset && t.dataset.load) op({ op: 'class.load', id: +t.dataset.load, prd: t.dataset.prd, ppl: +t.value ? [+t.value] : [] });
+    else if (t.dataset && t.dataset.ksubj && t.value) op({ op: 'class.subj', id: +t.dataset.ksubj, prd: t.value, on: true });
+  });
+  document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape') closeDlg(); });
+
+  // sure — уже спросили (кнопка «Выйти» в самом журнале)
+  function logout(sure) {
+    var n = myOut().n;
+    if (!sure && n && !confirm('Есть несохранённые правки (' + n + '): откройте журнал, они уйдут на сервер сами. Выйти и потерять их?')) return;
+    var done = function () { forget(true); clearHash(); view = 'home'; showLogin(''); };
+    if (!TOK) { done(); return; }
+    post('/logout').then(done, done);   // нет связи — с устройства выходим всё равно
+  }
+
+  /* ── тема и часы — как у журнала ── */
+  function markTheme() {
+    var night = document.documentElement.dataset.theme === 'night';
+    document.querySelectorAll('[data-tema]').forEach(function (b) { b.setAttribute('aria-pressed', String((b.dataset.tema === 'night') === night)); });
+    var mc = document.querySelector('meta[name=theme-color]');
+    if (mc) mc.content = night ? '#0a0510' : '#16131a';
+  }
+  function setTheme(v) {
+    if (v === 'night') document.documentElement.dataset.theme = 'night'; else delete document.documentElement.dataset.theme;
+    try { localStorage.setItem('tema', v); } catch (e) { /* без памяти — только на этот раз */ }
+    markTheme();
+  }
+  function tick() {
+    var n = new Date();
+    $('clock').textContent = [n.getHours(), n.getMinutes(), n.getSeconds()].map(function (x) { return ('0' + x).slice(-2); }).join(':');
+    setTimeout(tick, 1000 - n.getMilliseconds() + 5);
+  }
+  markTheme(); tick();
+
+  /* ── старт ── */
+  var inv = /[#&]inv=([0-9a-f]{32})\b/.exec(location.hash);
+  if (inv) { clearHash(); showInvite(inv[1]); }   // ключ приглашения из адреса убираем сразу
+  else if (location.hash === '#logout') logout(true);
+  // вход устарел посреди работы: убираем только негодный ключ — журнал и несохранённые правки ждут того же человека
+  else if (location.hash === '#relogin') { lsDel(LS.key); TOK = ''; showLogin('Вход устарел — войдите заново.', true); }
+  else if (TOK) { if (location.hash === '#shkola') view = 'shkola'; loadHome(); }
+  else showLogin('');
+})();
+</script>
+</body>
+</html>
