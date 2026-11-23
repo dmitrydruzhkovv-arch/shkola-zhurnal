@@ -152,6 +152,7 @@ table.zt{ border-collapse:separate; border-spacing:0; font-size:14px; }
   min-width:128px; max-width:150px; font-weight:600; box-shadow:1px 0 0 var(--z-line2); }
 .zt thead .nm{ z-index:4; font-size:12px; color:var(--muted); }
 .zt tbody .nm b{ display:block; font-weight:800; font-size:15.5px; line-height:1.15; }   /* имя — крупно, фамилия — мелко и серым (D, 01.10) */
+.zt tbody .nm b .nn{ font-style:normal; font-weight:700; font-size:12px; color:var(--muted); margin-right:5px; font-variant-numeric:tabular-nums; }   /* номер в списке — для генератора, только учителю (D 24.11) */
 .zt tbody .nm span{ display:block; font-size:11.5px; color:var(--muted); font-weight:500; }
 /* имя и фамилия — каждая в одну строку (D, 04.10): «Воротников · 2 долга» переносилось, строка становилась выше остальных,
    и плитки в ней растягивались. Не помещается — многоточием сжимается только сама фамилия (.fm): «· это ты» и число долгов
@@ -1368,6 +1369,8 @@ td.c .cam{ position:absolute; bottom:1px; right:2px; font-size:10px; font-style:
     var code = S.cfg.code && S.cfg.code.v;
     var h = (canTab() ? '<button class="btn pri" data-act="addles">＋ День</button>' : '') +
       (RIGHTS.roster ? '<button class="btn" data-act="students">Ученики</button>' : '') +
+      // генератор случайных номеров (D 24.11): номер = место ученика в списке; имена в него не уходят — только сколько учеников
+      (students().length > 1 ? '<a class="btn" href="generator.html?n=' + students().length + '&j=' + encodeURIComponent(J) + '" target="_blank" rel="noopener" style="text-decoration:none" title="Случайный номер ученика по списку журнала — откроется в новой вкладке">🎲 Генератор</a>' : '') +
       (RIGHTS.roster && code ? '<span class="codebox">Код класса для учеников и родителей: <b class="mono">' + esc(code) + '</b></span> ' +
         '<button class="link" data-act="codelink">ссылка</button> · <button class="link" data-act="code">новый код</button>' : '') +
       (!canTab() && SUBJ.length ? '<span class="codebox">' + (META.arch ? 'Архив: журнал прошлого года, только просмотр' : tab === ALL || RIGHTS.kr ? 'Оценки ставят педагоги предметов — здесь только просмотр' : 'Только просмотр') + '</span>' : '');
@@ -1421,12 +1424,12 @@ td.c .cam{ position:absolute; bottom:1px; right:2px; font-size:10px; font-style:
       });
     });
     h += '</tr></thead><tbody>';
-    P.forEach(function (p) {
+    P.forEach(function (p, pn) {
       var dn = staff ? debtCount(p.id) : 0;   // счётчик долгов — только учителю; дети видят красные клетки (D, 30.09)
       var av = avgOn[p.id] ? rowAvg(p.id, LY, LA, today) : null;
       h += '<tr' + (p.id === meId ? ' class="me"' : '') + '><th class="nm" data-sid="' + p.id + '" title="Средний балл — по нажатию">' +
         (av ? '<i class="avg" title="Средний балл ' + (mo === 'all' ? 'за год' : 'за месяц') + ': ' + av.n + ' оц.' + (HW_AS_2 ? ' Несданная вовремя ДЗ — как 2' : '') + '">' + av.v + '</i>' : '') +
-        '<b>' + esc(p.name || p.fam || 'Новый ученик') + '</b><span><i class="fm">' + esc(p.name ? p.fam : '') + '</i>' + (p.id === meId ? '\u00a0·\u00a0это ты' : '') +   // пробелы неразрывные: в строке-ряду обычный пробел у края пропал бы
+        '<b>' + (staff ? '<i class="nn">' + (pn + 1) + '</i>' : '') + esc(p.name || p.fam || 'Новый ученик') + '</b><span><i class="fm">' + esc(p.name ? p.fam : '') + '</i>' + (p.id === meId ? '\u00a0·\u00a0это ты' : '') +   // пробелы неразрывные: в строке-ряду обычный пробел у края пропал бы
         (dn ? '\u00a0·\u00a0<em>' + dn + ' ' + (dn === 1 ? 'долг' : dn < 5 ? 'долга' : 'долгов') + '</em>' : '') + '</span></th>';
       LY.forEach(function (x) {
         x.cols.forEach(function (c, ci) {
