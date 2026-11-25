@@ -1371,6 +1371,7 @@ td.c .cam{ position:absolute; bottom:1px; right:2px; font-size:10px; font-style:
       (RIGHTS.roster ? '<button class="btn" data-act="students">Ученики</button>' : '') +
       // генератор случайных номеров (D 24.11): номер = место ученика в списке; имена в него не уходят — только сколько учеников
       (students().length > 1 ? '<a class="btn" href="generator.html?n=' + students().length + '&j=' + encodeURIComponent(J) + '" target="_blank" rel="noopener" style="text-decoration:none" title="Случайный номер ученика по списку журнала — откроется в новой вкладке">🎲 Генератор</a>' : '') +
+      (students().length > 1 ? '<button class="btn" data-act="zhrebiy" title="Шар, кубик или колесо — по именам или номерам">🎡 Жребий</button>' : '') +
       (RIGHTS.roster && code ? '<span class="codebox">Код класса для учеников и родителей: <b class="mono">' + esc(code) + '</b></span> ' +
         '<button class="link" data-act="codelink">ссылка</button> · <button class="link" data-act="code">новый код</button>' : '') +
       (!canTab() && SUBJ.length ? '<span class="codebox">' + (META.arch ? 'Архив: журнал прошлого года, только просмотр' : tab === ALL || RIGHTS.kr ? 'Оценки ставят педагоги предметов — здесь только просмотр' : 'Только просмотр') + '</span>' : '');
@@ -2631,6 +2632,19 @@ td.c .cam{ position:absolute; bottom:1px; right:2px; font-size:10px; font-style:
   }
   window.addEventListener('scroll', hideTip, true);
 
+  // жребий (D 25.11): имена — в окно журнала, новая вкладка забирает их через window.opener и держит до закрытия.
+  // В адрес и на сервер имена не попадают. Двойные имена — с первой буквой фамилии
+  function openZhrebiy() {
+    var P = students(), cnt = {};
+    var nm = P.map(function (p) { return String(p.name || p.fam || '').trim(); });
+    nm.forEach(function (x) { cnt[x] = (cnt[x] || 0) + 1; });
+    var lab = nm.map(function (x, i) { var f = String(P[i].fam || '').trim(); return !x ? String(i + 1) : cnt[x] > 1 && P[i].name && f ? x + ' ' + f.charAt(0) + '.' : x; }), c2 = {};
+    lab.forEach(function (x) { c2[x] = (c2[x] || 0) + 1; });
+    window.ZR_NAMES = { j: J, list: lab.map(function (x, i) { return c2[x] > 1 ? x + ' (' + (i + 1) + ')' : x; }) };   // всё ещё одинаковые — с номером по списку
+    var w = window.open('zhrebiy.html?n=' + P.length + '&j=' + encodeURIComponent(J), '_blank');
+    if (!w) alert('Браузер не дал открыть новую вкладку — разреши всплывающие окна для этого сайта.');
+  }
+
   /* ── ученики (D) ── */
   function openStudents() {
     var P = students();
@@ -2872,6 +2886,7 @@ td.c .cam{ position:absolute; bottom:1px; right:2px; font-size:10px; font-style:
       else if (act === 'vygprint') vygPrint();
       else if (act === 'vygcsv') vygCsv();
       else if (act === 'students') openStudents();
+      else if (act === 'zhrebiy') openZhrebiy();
       else if (act === 'pastestu') pasteStudents();
       else if (act === 'hist' && cur) showHist(cur);
       else if (act === 'logout') { if (!outbox.length || confirm('Есть несохранённые правки (' + outbox.length + '). Выйти и потерять их?')) location.href = './#logout'; }
